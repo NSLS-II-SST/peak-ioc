@@ -1,0 +1,82 @@
+[build-system]
+requires = ["hatchling", "hatch-vcs"]
+build-backend = "hatchling.build"
+
+[project]
+name = "peak-ioc"
+dynamic = ["version"]
+description = "Caproto IOC for Scienta Omicron PEAK electron analyzers, with a simulation mode"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+authors = [
+    {name = "Charles Titus", email = "charles.titus@nist.gov"},
+]
+keywords = ["haxpes", "xps", "analyzer", "ioc", "caproto"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Topic :: Scientific/Engineering :: Physics",
+]
+# The real IOC also needs the vendor ``peak`` client package, which is not on
+# PyPI or conda-forge; install it separately where the real IOC runs.
+dependencies = [
+    "caproto",
+    "numpy",
+    "h5py",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "pytest-asyncio",
+]
+
+[project.scripts]
+peak-ioc = "peak_ioc.ioc:main"
+peak-sim-ioc = "peak_ioc.ioc:sim_main"
+
+[project.urls]
+Homepage = "https://github.com/xraygui/peak-ioc"
+
+[tool.pixi.workspace]
+channels = ["conda-forge"]
+platforms = ["linux-64"]
+
+[tool.pixi.dependencies]
+python = ">=3.10"
+caproto = "*"
+numpy = "*"
+h5py = "*"
+
+[tool.pixi.pypi-dependencies]
+peak-ioc = { path = ".", editable = true }
+
+[tool.pixi.tasks]
+sim = "peak-sim-ioc --list-pvs"
+
+[tool.pixi.feature.test.dependencies]
+pytest = "*"
+pytest-asyncio = "*"
+
+[tool.pixi.feature.test.tasks]
+test = "pytest tests"
+
+[tool.pixi.feature.build.dependencies]
+hatch = "*"
+
+[tool.pixi.feature.build.tasks]
+build = "hatch build"
+
+[tool.pixi.environments]
+test = { features = ["test"], solve-group = "default" }
+build = { features = ["build"], solve-group = "default" }
+
+[tool.hatch.version]
+source = "vcs"
+raw-options = { fallback_version = "0.0.0" }
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
