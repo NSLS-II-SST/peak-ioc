@@ -5,3 +5,6 @@ dist/
 .pixi/
 .pytest_cache/
 *.h5
+
+# Vendor PEAK SDK docs (company data); never commit
+.docs/
