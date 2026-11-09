@@ -10,8 +10,10 @@ Control flow, following the HAXPES ophyd device:
 
 - ``Measure`` = Start powers up the analyzer, moves it to the low end of the
   region with the live controls, waits ``PrepositionWait`` seconds, and sets
-  up the spectrum from the setting PVs. Stop finishes the measurement and
-  powers the analyzer down.
+  up the spectrum from the setting PVs. With ``Preposition`` Off it only sets
+  up the spectrum, for clients that power up and preposition through
+  ``Active`` and the ``Live*`` PVs themselves. Stop finishes the measurement
+  and powers the analyzer down.
 - ``Acquire`` = Acquire takes one spectrum and completes the put when the
   data PVs are written. It starts a measurement first if there is none, or
   restarts it if the settings have changed. With ``Accumulate`` off the
@@ -118,6 +120,7 @@ class PeakIOC(PVGroup):
     acquire = _enum("Done", ["Done", "Acquire"], name="Acquire")
     accumulate = _enum("Off", OFF_ON, name="Accumulate")
     read_settings = pvproperty(value=0, name="ReadSettings")
+    preposition = _enum("On", OFF_ON, name="Preposition")
     preposition_wait = pvproperty(value=8.0, name="PrepositionWait", precision=1,
                                   units="s")
     live_energy = pvproperty(value=0.0, name="LiveEnergy", precision=3,
@@ -264,7 +267,8 @@ class PeakIOC(PVGroup):
             try:
                 if value == "Start":
                     await self.report("Starting measurement")
-                    await self._start_measurement(self.region())
+                    await self._start_measurement(
+                        self.region(), preposition=self.preposition.value == "On")
                     await self.report("Measuring")
                 else:
                     await self._finish_measurement()
@@ -284,7 +288,8 @@ class PeakIOC(PVGroup):
                 region = self.region()
                 if self.configured is None:
                     await self.report("Starting measurement")
-                    await self._start_measurement(region)
+                    await self._start_measurement(
+                        region, preposition=self.preposition.value == "On")
                 elif region != self.configured:
                     await self.report("Settings changed, restarting measurement")
                     await self.call(self.backend.finish_measurement)

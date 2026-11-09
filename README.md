@@ -42,8 +42,10 @@ worker thread, one at a time.
 - `Measure` = Start powers up the analyzer, moves it to the low end of the
   region with the live controls, waits `PrepositionWait` seconds (8 for the
   real IOC, 0 for the sim), and sets up the spectrum from the setting PVs.
-  This is the HAXPES device's `stage()`. Stop finishes the measurement and
-  powers down, like `unstage()`.
+  This is the HAXPES `PeakAnalyzer.stage()`. With `Preposition` Off it skips
+  the power-up and move and only sets up the spectrum, for clients (such as
+  `PeakAnalyzerIOC.stage()`) that do those steps with `Active` and the `Live*`
+  PVs. Stop finishes the measurement and powers down, like `unstage()`.
 - `Acquire` = Acquire takes one spectrum; the put completes once the data PVs
   are written, so a put with completion is a whole `trigger()`. It starts a
   measurement first if none is running, and restarts it if the settings have
@@ -68,6 +70,7 @@ All names follow the prefix.
 | `Measure` | enum Stop/Start | see above |
 | `Acquire` | enum Done/Acquire | see above |
 | `Accumulate` | enum Off/On | keep summing sweeps instead of clearing |
+| `Preposition` | enum Off/On | On: `Measure` = Start powers up and prepositions first |
 | `PrepositionWait` | float | seconds to settle after prepositioning |
 | `LiveEnergy`, `LivePassEnergy`, `LiveLensMode`, `LiveDwellTime` | | only while `Active` is On |
 | `State_RBV` | string | the PEAK state: Ready, Measuring or Acquiring |

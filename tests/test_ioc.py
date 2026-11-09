@@ -99,3 +99,13 @@ async def test_live_controls_need_active(ioc):
     await ioc.live_pass_energy.write(20.0)
     assert ioc.backend.live["pass_energy"] == 20.0
     assert ioc.pass_energy.value == 20.0
+
+
+async def test_measure_without_preposition(ioc):
+    await ioc.preposition.write("Off")
+    await ioc.active.write("On")
+    await ioc.live_energy.write(1980.0)
+    await ioc.measure.write("Start")
+    assert ioc.measuring.value == "On"
+    # The client's live energy is left alone.
+    assert ioc.backend.live["kinetic_energy"] == 1980.0
